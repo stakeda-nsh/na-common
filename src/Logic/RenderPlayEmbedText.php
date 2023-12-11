@@ -5,9 +5,20 @@ namespace Common\Logic;
 use Common\Dto\PlayDto;
 use Common\Dto\PlayVersionArtistDto;
 
-class PlayLogic
+/**
+ * 公演情報埋め込みテキストレンダリング用クラス
+ */
+class RenderPlayEmbedText
 {
-    static function renderEmbedText(PlayDto $play, int $version, bool $isRawBody): string
+    /**
+     * 実行処理
+     *
+     * @param PlayDto $play
+     * @param int $version
+     * @param bool $isRawBody
+     * @return string
+     */
+    static function execute(PlayDto $play, int $version, bool $isRawBody): string
     {
         $playVersion = $play->getSpecificVersion($version);
         if ($playVersion === null) {
