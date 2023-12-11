@@ -18,7 +18,7 @@ class PlayVersionScheduleDto
     /** @var string|null */
     private $venueName;
 
-    private const DATE_FORMAT = 'Y年m月d日（a）';
+    private const DATE_FORMAT = 'Y年M月D日（ddd）';
 
     public function __construct(?Carbon $openingDate, ?Carbon $closingDate, ?string $scheduleInfo, ?string $venueName)
     {
@@ -35,7 +35,7 @@ class PlayVersionScheduleDto
 
     public function getFormattedOpeningDate(): ?string
     {
-        return $this->openingDate ? $this->openingDate->format(self::DATE_FORMAT) : null;
+        return $this->openingDate ? $this->openingDate->isoFormat(self::DATE_FORMAT) : null;
     }
 
     public function getClosingDate(): ?Carbon
@@ -45,7 +45,7 @@ class PlayVersionScheduleDto
 
     public function getFormattedClosingDate(): ?string
     {
-        return $this->closingDate ? $this->closingDate->format(self::DATE_FORMAT) : null;
+        return $this->closingDate ? $this->closingDate->isoFormat(self::DATE_FORMAT) : null;
     }
 
     public function getScheduleInfo(): ?string

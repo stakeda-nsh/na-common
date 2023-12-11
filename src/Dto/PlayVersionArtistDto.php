@@ -5,50 +5,41 @@ namespace Common\Dto;
 class PlayVersionArtistDto
 {
     /** @var string */
-    private $artistId;
+    private $displayName;
 
-    /** @var string */
-    private $name;
-
-    /** @var string */
+    /** @var string|null */
     private $group;
 
-    /** @var string */
+    /** @var string|null */
     private $part;
 
-    /** @var string */
+    /** @var string|null */
     private $credit;
 
-    public function __construct(string $artistId, string $name, string $group, string $part, string $credit)
+    public function __construct(string $displayName, ?string $group, ?string $part, ?string $credit)
     {
-        $this->artistId = $artistId;
-        $this->name = $name;
+        $this->displayName = $displayName;
         $this->group = $group;
         $this->part = $part;
         $this->credit = $credit;
     }
 
-    public function getArtistId(): string
+    public function getDisplayName(): string
     {
-        return $this->artistId;
+        return $this->displayName;
     }
 
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    public function getGroup(): string
+    public function getGroup(): ?string
     {
         return $this->group;
     }
 
-    public function getPart(): string
+    public function getPart(): ?string
     {
         return $this->part;
     }
 
-    public function getCredit(): string
+    public function getCredit(): ?string
     {
         return $this->credit;
     }
