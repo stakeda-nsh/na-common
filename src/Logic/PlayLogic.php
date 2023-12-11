@@ -7,7 +7,7 @@ use Common\Dto\PlayVersionArtistDto;
 
 class PlayLogic
 {
-    static function createEmbedText(PlayDto $play, int $version): string
+    static function renderEmbedText(PlayDto $play, int $version, bool $isRawBody): string
     {
         $playVersion = $play->getSpecificVersion($version);
         if ($playVersion === null) {
@@ -19,28 +19,30 @@ class PlayLogic
 
         // スケジュール
         $schedules = $playVersion->getSchedules();
-        $resultText .= '{pre}' . PHP_EOL;
-        foreach ($schedules as $index => $schedule) {
-            // 公演期間
-            if ($schedule->getScheduleInfo() !== null && $schedule->getScheduleInfo() !== '') {
-                $resultText .= $schedule->getScheduleInfo();
-            } elseif ($schedule->getOpeningDate() !== null || $schedule->getClosingDate() !== null) {
-                $resultText .= ($schedule->getFormattedOpeningDate() ?? '') . '～' . ($schedule->getFormattedClosingDate() ?? '');
-            }
-            if ($schedule->getClosingDate() !== null && $schedule->getClosingDate()->isPast()) {
-                $resultText .= '※公演終了' ;
-            }
-            $resultText .= PHP_EOL;
+        if (!empty($schedules)) {
+            $schedulePreformattedText = '';
+            foreach ($schedules as $index => $schedule) {
+                // 公演期間
+                if ($schedule->getScheduleInfo() !== null && $schedule->getScheduleInfo() !== '') {
+                    $schedulePreformattedText .= $schedule->getScheduleInfo();
+                } elseif ($schedule->getOpeningDate() !== null || $schedule->getClosingDate() !== null) {
+                    $schedulePreformattedText .= ($schedule->getFormattedOpeningDate() ?? '') . '～' . ($schedule->getFormattedClosingDate() ?? '');
+                }
+                if ($schedule->getClosingDate() !== null && $schedule->getClosingDate()->isPast()) {
+                    $schedulePreformattedText .= '※公演終了' ;
+                }
+                $schedulePreformattedText .= PHP_EOL;
 
-            // 会場名
-            if ($schedule->getVenueName() !== null && $schedule->getVenueName() !== '') {
-                $resultText .= $schedule->getVenueName() . PHP_EOL;
+                // 会場名
+                if ($schedule->getVenueName() !== null && $schedule->getVenueName() !== '') {
+                    $schedulePreformattedText .= $schedule->getVenueName() . PHP_EOL;
+                }
+                if ($index < count($schedules) - 1) {
+                    $schedulePreformattedText .= PHP_EOL;
+                }
             }
-            if ($index < count($schedules) - 1) {
-                $resultText .= PHP_EOL;
-            }
+            $resultText .= self::renderPreformattedText($schedulePreformattedText, $isRawBody);
         }
-        $resultText .= '{/pre}' . PHP_EOL;
 
         // スタッフ
         $staffs = $playVersion->getStaffs();
@@ -48,7 +50,7 @@ class PlayLogic
             $resultText .= PHP_EOL;
             $resultText .= '<h3>スタッフ</h3>' . PHP_EOL;
 
-            $renderedStaff = PlayLogic::renderArtists($staffs);
+            $renderedStaff = self::renderArtists($staffs, $isRawBody);
             if ($renderedStaff) {
                 $resultText .= $renderedStaff;
             }
@@ -60,7 +62,7 @@ class PlayLogic
             $resultText .= PHP_EOL;
             $resultText .= '<h3>出演</h3>' . PHP_EOL;
 
-            $groupingCasts = PlayLogic::renderArtists($casts);
+            $groupingCasts = self::renderArtists($casts, $isRawBody);
             if ($groupingCasts) {
                 $resultText .= $groupingCasts;
             }
@@ -80,12 +82,28 @@ class PlayLogic
     }
 
     /**
+     * 整形済みテキストを加工して返却
+     *
+     * @param string $text
+     * @param bool $isRawBody
+     * @return string
+     */
+    private static function renderPreformattedText(string $text, bool $isRawBody): string
+    {
+        $resultText = ($isRawBody ? '{pre}' : '<p>') . PHP_EOL;
+        $resultText .= ($isRawBody ? $text : nl2br($text, false));
+        $resultText .= ($isRawBody ? '{/pre}' : '</p>') . PHP_EOL;
+        return $resultText;
+    }
+
+    /**
      * スタッフ・キャスト レンダリング処理
      *
      * @param PlayVersionArtistDto[] $artists
+     * @param bool $isRawBody
      * @return string
      */
-    private static function renderArtists(array $artists): string
+    private static function renderArtists(array $artists, bool $isRawBody): string
     {
         $groupings = [];
         $groupsIndex = 0;
@@ -117,16 +135,16 @@ class PlayLogic
             if ($groupName !== null && $groupName !== '') {
                 $resultText .= '<h4>' . $groupName . '</h4>' . PHP_EOL;
             }
-            $resultText .= '{pre}' . PHP_EOL;
+            $preformattedText = '';
 
             foreach ($group['parts'] as $part) {
                 $partName = $part['part_name'];
                 if ($partName !== null && $partName !== '') {
-                    $resultText .= $partName . '：';
+                    $preformattedText .= $partName . '：';
                 }
-                $resultText .= $part['artists'] . PHP_EOL;
+                $preformattedText .= $part['artists'] . PHP_EOL;
             }
-            $resultText .= '{/pre}' . PHP_EOL;
+            $resultText .= self::renderPreformattedText($preformattedText, $isRawBody);
         }
 
         return $resultText;
